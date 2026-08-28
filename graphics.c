@@ -1095,7 +1095,7 @@ void draw_menu(void)
     //gotoxy(7, 24);    
 	//printf("\e[41m  \e[30;47m     Copyr\e[37;40mi\e[30;47mght 2026 \e[37;40m©\e[30;47m J. Caraumã • https://cara\e[37;40mu\e[30;47mma.com • Roraima");    
     gotoxy(12,25);textcolor(WHITE);textbackground(BLACK);
-    printf("Copyright 2026 © J. Caraumã • https://caraumã.com • Roraima");
+    printf("Copyright 2026 © J. Caraumã • https://carauma.com • Roraima");
     
     gotoxy(SCREEN_WIDTH, SCREEN_HEIGHT);    
 }
