@@ -1131,7 +1131,7 @@ static void draw_control_mode(int manual_mode, int paused)
 
     if (paused)
     {
-        mode = "[P] Pausado                                                          ";
+        mode = "[P] Pausado                                       ";
     }
     else if (manual_mode)
     {
@@ -1304,7 +1304,7 @@ int cobraRun(void)
         // encerra o jogo se ele atingir a própria cobra
         if (update_bullet())
         {
-            message = " Atingida pelo proprio tiro!";
+            message = " Eita, levou chumbo!";
             break;
         }
 
