@@ -1116,10 +1116,18 @@ static int move_from_key(int pressed_key)
     }
 }
 
+// Impede o retorno instantâneo em sentido contrário.
+static int is_reverse_move(int previous_move, int requested_move)
+{
+    return previous_move != ERR &&
+           requested_move != ERR &&
+           previous_move == -requested_move;
+}
+
 // Mostra o modo atual na última linha reservada para a arena.
 static void draw_control_mode(int manual_mode, int paused)
 {
-    const char *mode = "[Setas] Mudar direção • [Espaço] Atirar • [P] Pause                 ";
+    const char *mode = "[Setas] Mudar direção • [P] Pause                 ";
 
     if (paused)
     {
@@ -1127,7 +1135,7 @@ static void draw_control_mode(int manual_mode, int paused)
     }
     else if (manual_mode)
     {
-        mode = "[Setas] Mudar direção • [Espaço] Atirar • [P] Pause • [A] Automático";
+        mode = "[Setas] Mudar direção • [P] Pause • [A] Automático";
     }
 
     textcolor(YELLOW);
@@ -1233,6 +1241,11 @@ int cobraRun(void)
 
             if (requested_move != ERR)
             {
+                if (is_reverse_move(last_move, requested_move))
+                {
+                    continue;
+                }
+
                 manual_mode = 1;
                 manual_move = requested_move;
                 draw_control_mode(manual_mode, paused);
