@@ -1,0 +1,27 @@
+# Objetos e binários compilados
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.lib
+*.dll
+*.dSYM/
+
+# Diretórios de build
+build/
+bin/
+obj/
+
+# Arquivos de debug
+*.pdb
+*.ilk
+
+# Editores/IDEs
+.vscode/
+.vs/
+*.swp
+
+# Sistema operacional
+Thumbs.db
+.DS_Store
