@@ -26,9 +26,9 @@
 
    // Oculta o cursor do console
    hidecursor();
-    
+       
+   #ifdef RELEASE_VERSION   
    // Animação de boas-vindas
-   #ifdef RELEASE_VERSION
    draw_welcome();
    #endif
 

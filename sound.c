@@ -17,41 +17,66 @@
 #include "bass.h"
 
 /* Canal principal do dispositivo de áudio (áudios principais do jogo) */
-long int audio_mainchannel;
+unsigned long int audio_mainchannel;
 
-/* Reproduz o áudio correspondente ao arquivo dado */
-int audio_play(unsigned long int audiochannel, char *filename,
+/* Nome do último arquivo tocado no canal principal, usado por audio_is_track_playing */
+static char last_track[256] = "";
+
+/* Reproduz o áudio correspondente ao arquivo dado, atualizando *audiochannel
+ * com o handle do novo stream (senão o handle antigo é perdido e o canal
+ * não pode mais ser parado/reutilizado pelo chamador) */
+int audio_play(unsigned long int *audiochannel, char *filename,
 	short repeat)
 {
-	BASS_ChannelStop(audiochannel);
-	if(!(audiochannel = BASS_StreamCreateFile(
-		FALSE, filename, 0, 0, BASS_SAMPLE_LOOP * repeat)))
-//	&&if(!(audiochannel = BASS_MusicLoad(
+	unsigned long int new_channel;
+
+	BASS_ChannelStop(*audiochannel);
+
+	if(!(new_channel = BASS_StreamCreateFile(
+		FALSE, filename, 0, 0, repeat ? BASS_SAMPLE_LOOP : 0)))
+//	&&if(!(new_channel = BASS_MusicLoad(
 //		FALSE, filename, 0, 0, BASS_MUSIC_RAMP | BASS_SAMPLE_FLOAT | (BASS_SAMPLE_LOOP && repeat), 1)))
 	{
 		// Erro ao carregar arquivo...
 		return(EXIT_FAILURE);
 	} else {
+		*audiochannel = new_channel;
+
+		strncpy(last_track, filename, sizeof(last_track) - 1);
+		last_track[sizeof(last_track) - 1] = '\0';
+
 		// Inicia reprodução do áudio...
-		BASS_ChannelPlay(audiochannel, FALSE);
+		BASS_ChannelPlay(*audiochannel, FALSE);
 	}
 	return(EXIT_SUCCESS);
 }
 
 /* Desabilita reprodução de áudio */
-void audio_stop()
+void audio_stop(void)
 {
 	BASS_Stop();
 }
 
+/* Indica se o canal ainda está tocando (útil para esperar um áudio terminar) */
+int audio_is_playing(unsigned long int audiochannel)
+{
+	return(BASS_ChannelIsActive(audiochannel) == BASS_ACTIVE_PLAYING);
+}
+
+/* Indica se o arquivo dado é o que está tocando agora no canal principal */
+int audio_is_track_playing(const char *filename)
+{
+	return(audio_is_playing(audio_mainchannel) && strcmp(last_track, filename) == 0);
+}
+
 /* Habilita reprodução de áudio */
-void audio_resume()
+void audio_resume(void)
 {
 	BASS_Start();
 }
 
 /* Inicializa o módulo de áudio com as configurações padrão */
-int audio_initialize()
+int audio_initialize(void)
 {
 	// Verifica se foi carregada uma versão correta da biblioteca BASS
 	if (HIWORD(BASS_GetVersion()) != BASSVERSION)
@@ -67,7 +92,7 @@ int audio_initialize()
 }
 
 /* Finaliza o módulo de áudio corretamente */
-void audio_terminate()
+void audio_terminate(void)
 {
 	BASS_Free();
 }

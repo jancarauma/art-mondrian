@@ -1145,6 +1145,27 @@ static void draw_control_mode(int manual_mode, int paused)
     textcolor(WHITE);
 }
 
+// Exibe a contagem inicial no centro da arena antes do primeiro movimento.
+static void draw_start_countdown(void)
+{
+    int value;
+
+    for (value = 5; value > 0; value--)
+    {
+        textcolor(YELLOW);
+        arena_gotoxy(WIDTH / 2, HEIGHT / 2);
+        printf("%d", value);
+        textcolor(WHITE);
+        fflush(stdout);
+
+        delay(1000);
+    }
+
+    arena_gotoxy(WIDTH / 2, HEIGHT / 2);
+    putstr(CHAR_EMPTY);
+    fflush(stdout);
+}
+
 // Mensagem final, dentro da área do problema
 static void draw_game_over(const char *message)
 {
@@ -1172,6 +1193,7 @@ int cobraRun(void)
     int manual_mode = 0;
     int manual_move = ERR;
     int requested_move;
+    int snake_died = 1;
 
     // A arena é desenhada na área reservada ao problema
     draw_problem_screen(COBRA_PROBLEM, "");
@@ -1181,12 +1203,7 @@ int cobraRun(void)
     srand(
         (unsigned int)time(NULL)
     );
-
-    // Inicia o módulo de áudio e toca a trilha do mapa
-    audio_initialize();
-    audio_stop(); audio_resume();
-    audio_play(audio_mainchannel, AUDIO_MAP1, TRUE);
-
+    
     // Inicialização    
     initialize_game();
 
@@ -1212,6 +1229,11 @@ int cobraRun(void)
     // Modo de controle inicial.
     draw_control_mode(manual_mode, paused);
 
+    audio_stop(); audio_resume();
+    audio_play(&audio_mainchannel, AUDIO_MAP1, TRUE);
+
+    draw_start_countdown();
+
     // Loop principal do jogo
     while (key != KEY_ESC_CODE)
     {
@@ -1223,6 +1245,7 @@ int cobraRun(void)
         if (key == KEY_ESC_CODE)
         {
             message = " Interrompido.";
+            snake_died = 0;
             break;
         }
 
@@ -1324,6 +1347,7 @@ int cobraRun(void)
         if (snake_size >= playable_cells)
         {
             message = "Voce venceu!";
+            snake_died = 0;
             break;
         }
 
@@ -1334,11 +1358,20 @@ int cobraRun(void)
 
     draw_game_over(message);
 
-    audio_terminate();
+    if (snake_died)
+    {
+        audio_play(&audio_mainchannel, AUDIO_EVILLAUGH, FALSE);
+    }
+    else
+    {
+        audio_stop();
+    }
 
     showcursor();
 
     waitEsc();
+
+    audio_terminate();
 
     return 0;
 }

@@ -27,13 +27,16 @@
 #define AUDIO_TEFX_SLIDINGTOC	"audio/slidingtoc.mp3"
 #define AUDIO_FOOD1				"audio/food1.mp3"
 #define AUDIO_MAP1				"audio/map1.mp3"
+#define AUDIO_EVILLAUGH			"audio/evil-laugh.mp3"
 
-extern long int audio_mainchannel;
+extern unsigned long int audio_mainchannel;
 
-int audio_initialize();
-void audio_terminate();
-int audio_play(unsigned long int audiochannel, char *filename, short repeat);
-void audio_stop();
-void audio_resume();
+int audio_initialize(void);
+void audio_terminate(void);
+int audio_play(unsigned long int *audiochannel, char *filename, short repeat);
+int audio_is_playing(unsigned long int audiochannel);
+int audio_is_track_playing(const char *filename);
+void audio_stop(void);
+void audio_resume(void);
 
 #endif /* SOUND_H */

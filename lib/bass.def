@@ -9,3 +9,4 @@ BASS_ChannelStop
 BASS_ChannelPlay
 BASS_StreamCreateFile
 BASS_MusicLoad
+BASS_ChannelIsActive

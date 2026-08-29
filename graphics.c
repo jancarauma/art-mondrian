@@ -12,6 +12,7 @@
 #include "ascii/ufrr.h"
 #include "ascii/turndownforwhat1.h"
 #include "ascii/goodbye.h"
+#include "sound.h"
 
 /*
  * Acumula toda a saída de um quadro de animação em memória para que seja
@@ -390,7 +391,7 @@ void textScrollingDoubleH(const int x, const int y, char *text, char direction, 
             textbackground(BLACK);
             textcolor(DARKGREY);
             gotoxy(1, 24);
-            delay(15);
+            delay(35);
         }
     }
     else
@@ -420,7 +421,7 @@ void textScrollingDoubleH(const int x, const int y, char *text, char direction, 
             textbackground(BLACK);
             textcolor(DARKGREY);
             gotoxy(1, 24);
-            delay(15);
+            delay(35);
         }
     }
     textattr(RESETATTR);
@@ -539,23 +540,38 @@ void textAddChar(const int x, const int y, char *text, int txtcolor, int bkgcolo
  */
 int draw_welcome(void)
 {
-    int i;
+    int i;    
     
     // limpa tela
-    clrscr();
+    clrscr();    
+
+    // Inicia o módulo de áudio e toca a trilha do mapa
+    audio_initialize();
 
     // Cabeçalho
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(24,  4,  "UNIVERSIDADE FEDERAL DE  RORAIMA - UFRR", 1, RED, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(18,  5,  "PRÓ-REITORIA DE PESQUISA E DE PÓS-GRADUAÇÃO - PRPPG", 1, BLUE, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(16,  6,  "PROGRAMA DE PÓS-GRADUAÇÃO EM COMPUTAÇÃO APLICADA - PPCA", 1, YELLOW, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(19,  7,  "MESTRADO PROFISSIONAL EM INFORMÁTICA NA EDUCAÇÃO", 1, WHITE, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(32,  8,  "PROGRAMAÇÃO ESTRUTURADA", 1, RED, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(40, 20,  "Ago/2026", 1, YELLOW, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(37, 19,  "Boa Vista,  RR", 1, BLUE, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(33,  10,  "Prof.  Dr. Filipi Dwan", 0, WHITE, BLACK);
-	textAddChar(28,  12, "Aluno:  Janderson Gomes da Silva", YELLOW, BLACK);
+	audio_play(&audio_mainchannel, AUDIO_TEFX_ADDCHAR, FALSE);
+    textAddChar(28,  12, "Aluno:  Janderson Gomes da Silva", YELLOW, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_ADDCHAR, FALSE);
 	textAddChar(36,  13, "Mat.: 2026102018", BLUE, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_ADDCHAR, FALSE);
 	textAddChar(31,  15, "ATIVIDADES EM SALA DE AULA", RED, BLACK);
+    audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(33, 17,  "  pense diferente :o) ", 0, WHITE, BLACK);
     delay(1000);
     for (i = 0; i < 22; i++)
@@ -572,8 +588,9 @@ int draw_welcome(void)
 
     // limpa tela
     clrscr();
-
-    draw_cloudy_sky();
+    
+    audio_play(&audio_mainchannel, AUDIO_INTRO, FALSE);
+    draw_cloudy_sky();    
     textScrollingOverBg(
         ascii_ufrr, 
         ascii_ufrr_length,
@@ -586,7 +603,7 @@ int draw_welcome(void)
     //    80 /* coluna de origem do efeito de rolagem */
     //);
 
-    // DJANGO: Imprime, efeito oscilante de cores
+    // DJANGO: Imprime, efeito oscilante de cores    
     textcolor(WHITE);textbackground(BLACK);clrscr();
     for (i = 0; i < 20; i++)
     {
@@ -609,6 +626,7 @@ int draw_welcome(void)
     }      
     
     // DJANGO: Imprime, efeito oscilante de cores
+    audio_play(&audio_mainchannel, AUDIO_DJANGO, FALSE); delay(500);
     for (i = 1; i < 8; i++)
     {
         gotoxy(1, 8 - i);        
@@ -616,7 +634,8 @@ int draw_welcome(void)
         printf("%s", ascii_django);
         // aguarda 100 ms antes de prosseguir
         delay(300);
-    }      
+    }    
+    delay(500);  
 
     // Turn Down For What (One)
     //textScrolling(
@@ -642,6 +661,10 @@ int draw_goodbye(void)
 
     // pinta o fundo mondrian por trás da arte
     draw_mondrian();    
+
+    // Risada malefica acompanhando a animação de despedida
+    audio_initialize();
+    audio_play(&audio_mainchannel, AUDIO_EVILLAUGH, FALSE);
 
     // TCHAU: Imprime, efeito oscilante de cores    
     for (i = 0; i < 7; i++)
@@ -688,6 +711,13 @@ int draw_goodbye(void)
         // aguarda 100 ms antes de prosseguir
         usleep(100000);
     }       
+
+    // segura a tela até a risada maléfica terminar de tocar
+    while (audio_is_playing(audio_mainchannel))
+    {
+        usleep(100000);
+    }
+
     clrscr();
     gotoxy(SCREEN_WIDTH, SCREEN_HEIGHT);
     return (0);
@@ -1035,6 +1065,15 @@ void draw_content_placeholder(int selected)
 void draw_menu(void)
 {
     int i, j;
+
+    // Só (re)inicia a trilha do menu se ela não for a que já está tocando,
+    // evitando reiniciar do começo ao simplesmente voltar de um problema comum.
+    audio_initialize();
+
+    if (!audio_is_track_playing(AUDIO_MENU_MAIN))
+    {
+        audio_play(&audio_mainchannel, AUDIO_MENU_MAIN, TRUE);
+    }
 
     // Padrão de fundo
     draw_mondrian();
