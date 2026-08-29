@@ -5,6 +5,7 @@
 #include "cobra.h"
 #include "../../graphics.h"
 #include "../../utils.h"
+#include "../../sound.h"
 
 // Tabuleiro
 int board[FIELD_SIZE];
@@ -1181,7 +1182,12 @@ int cobraRun(void)
         (unsigned int)time(NULL)
     );
 
-    // Inicialização
+    // Inicia o módulo de áudio e toca a trilha do mapa
+    audio_initialize();
+    audio_stop(); audio_resume();
+    audio_play(audio_mainchannel, AUDIO_MAP1, TRUE);
+
+    // Inicialização    
     initialize_game();
 
     // Inicializa tabuleiro lógico
@@ -1327,6 +1333,8 @@ int cobraRun(void)
     }
 
     draw_game_over(message);
+
+    audio_terminate();
 
     showcursor();
 
