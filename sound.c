@@ -19,6 +19,9 @@
 /* Canal principal do dispositivo de áudio (áudios principais do jogo) */
 unsigned long int audio_mainchannel;
 
+/* Canal auxiliar para efeitos curtos sobre o áudio principal */
+unsigned long int audio_effectchannel;
+
 /* Nome do último arquivo tocado no canal principal, usado por audio_is_track_playing */
 static char last_track[256] = "";
 

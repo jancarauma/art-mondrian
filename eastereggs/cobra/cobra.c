@@ -806,6 +806,8 @@ void make_move(int pbest_move)
     // Verifica o alimento.
     if (snake[HEAD] == food)
     {
+        audio_play(&audio_effectchannel, AUDIO_FOOD1, FALSE);
+
         board[
             snake[HEAD]
         ] = SNAKE;

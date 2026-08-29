@@ -30,6 +30,7 @@
 #define AUDIO_EVILLAUGH			"audio/evil-laugh.mp3"
 
 extern unsigned long int audio_mainchannel;
+extern unsigned long int audio_effectchannel;
 
 int audio_initialize(void);
 void audio_terminate(void);
