@@ -1362,7 +1362,10 @@ int cobraRun(void)
 
     if (snake_died)
     {
-        audio_play(&audio_mainchannel, AUDIO_EVILLAUGH, FALSE);
+        // Fundo (dead) no canal principal e voz (evil laugh) no canal de efeitos, tocando ao mesmo tempo
+        audio_play(&audio_mainchannel, AUDIO_DEAD, FALSE);
+        delay(500);
+        audio_play(&audio_effectchannel, AUDIO_EVILLAUGH, FALSE);
     }
     else
     {

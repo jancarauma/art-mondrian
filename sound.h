@@ -28,6 +28,8 @@
 #define AUDIO_FOOD1				"audio/food1.mp3"
 #define AUDIO_MAP1				"audio/map1.mp3"
 #define AUDIO_EVILLAUGH			"audio/evil-laugh.mp3"
+#define AUDIO_DEAD              "audio/dead.mp3"
+#define AUDIO_GLITCH            "audio/glitch.mp3"
 
 extern unsigned long int audio_mainchannel;
 extern unsigned long int audio_effectchannel;

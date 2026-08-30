@@ -664,6 +664,7 @@ int draw_goodbye(void)
 
     // Risada malefica acompanhando a animação de despedida
     audio_initialize();
+    audio_play(&audio_effectchannel, AUDIO_GLITCH, FALSE);
     audio_play(&audio_mainchannel, AUDIO_EVILLAUGH, FALSE);
 
     // TCHAU: Imprime, efeito oscilante de cores    
