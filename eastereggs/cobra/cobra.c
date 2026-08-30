@@ -588,6 +588,8 @@ void fire_bullet(void)
     bullet_dir = last_move;
     bullet_pos = snake[HEAD];
 
+    audio_play(&audio_effectchannel, AUDIO_SHOOT, FALSE);
+
     old_tail = snake[snake_size - 1];
     snake_size--;
 
@@ -635,6 +637,8 @@ int update_bullet(void)
     // Atinge a comida: mesmo efeito de capturá-la, mas com bônus de 3 pontos
     if (next_pos == food)
     {
+        audio_play(&audio_effectchannel, AUDIO_SHOOT_FOOD, FALSE);
+
         if (was_drawn)
         {
             erase_bullet();

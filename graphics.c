@@ -574,6 +574,7 @@ int draw_welcome(void)
     audio_play(&audio_mainchannel, AUDIO_TEFX_SLIDING, FALSE);
     textScrollingDoubleH(33, 17,  "  pense diferente :o) ", 0, WHITE, BLACK);
     delay(1000);
+    audio_play(&audio_mainchannel, AUDIO_BELLS, FALSE);
     for (i = 0; i < 22; i++)
 	{
 		gotoxy(33, 17);
@@ -665,7 +666,7 @@ int draw_goodbye(void)
     // Risada malefica acompanhando a animação de despedida
     audio_initialize();
     audio_play(&audio_effectchannel, AUDIO_GLITCH, FALSE);
-    audio_play(&audio_mainchannel, AUDIO_EVILLAUGH, FALSE);
+    audio_play(&audio_mainchannel, AUDIO_GOODBYE, FALSE);
 
     // TCHAU: Imprime, efeito oscilante de cores    
     for (i = 0; i < 7; i++)

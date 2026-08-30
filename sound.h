@@ -30,6 +30,10 @@
 #define AUDIO_EVILLAUGH			"audio/evil-laugh.mp3"
 #define AUDIO_DEAD              "audio/dead.mp3"
 #define AUDIO_GLITCH            "audio/glitch.mp3"
+#define AUDIO_SHOOT             "audio/shoot.mp3"
+#define AUDIO_BELLS             "audio/bells.mp3"
+#define AUDIO_SHOOT_FOOD        "audio/shoot-food.mp3"
+#define AUDIO_GOODBYE           "audio/goodbye.mp3"
 
 extern unsigned long int audio_mainchannel;
 extern unsigned long int audio_effectchannel;
