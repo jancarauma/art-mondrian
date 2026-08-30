@@ -78,8 +78,8 @@ static void cloudy_sky_restore_cell(FrameBuf *fb, int x, int y);
 
 char *mainmenu[MENU_MAIN_ITEMS] = {
 	" Aula 01 | Núm. Total de Colisões ······· 21/08/2026 ",  
-	" Problema 02 - ····································· ",  
-    " Problema 03 - ····································· ",  
+	" Aula 02 | Pilha com Vetor ·············· 29/08/2026 ",  
+    "         | Fila com Vetor ···············            ",  
     " Problema 04 - ····································· ",  
     " Problema 05 - ····································· ",  
     " Problema 06 - ····································· ",  
