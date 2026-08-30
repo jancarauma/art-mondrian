@@ -6,6 +6,7 @@
 #include "../../graphics.h"
 #include "../../utils.h"
 #include "../../sound.h"
+#include "../../ascii/54321.h"
 
 // Tabuleiro
 int board[FIELD_SIZE];
@@ -1154,21 +1155,73 @@ static void draw_control_mode(int manual_mode, int paused)
 // Exibe a contagem inicial no centro da arena antes do primeiro movimento.
 static void draw_start_countdown(void)
 {
+    const unsigned char *art = ascii_54321;
     int value;
 
     for (value = 5; value > 0; value--)
     {
-        textcolor(YELLOW);
-        arena_gotoxy(WIDTH / 2, HEIGHT / 2);
-        printf("%d", value);
+        int line;
+        int countdown_color;
+
+        switch (value)
+        {
+            case 5:
+                countdown_color = RED;
+                break;
+            case 4:
+            case 2:
+                countdown_color = WHITE;
+                break;
+            case 3:
+                countdown_color = YELLOW;
+                break;
+            default:
+                countdown_color = BLUE;
+                break;
+        }
+
+        textcolor(countdown_color);
+
+        for (line = 0; line < 7; line++)
+        {
+            int line_width = 0;
+            const unsigned char *line_start = art;
+            unsigned int bytes_remaining =
+                ascii_54321_length - (unsigned int)(art - ascii_54321);
+
+            while ((unsigned int)line_width < bytes_remaining &&
+                   art[line_width] != '\n')
+            {
+                line_width++;
+            }
+
+            arena_gotoxy(WIDTH / 2 - 8, HEIGHT / 2 - 3 + line);
+            printf("%-16s", "");
+            arena_gotoxy(WIDTH / 2 - line_width / 2, HEIGHT / 2 - 3 + line);
+            fwrite(line_start, 1, (size_t) line_width, stdout);
+            art += line_width + 1;
+        }
+
         textcolor(WHITE);
         fflush(stdout);
 
         delay(1000);
+
+        if (value > 1)
+        {
+            if (art[0] == '\n')
+            {
+                art++;
+            }
+        }
     }
 
-    arena_gotoxy(WIDTH / 2, HEIGHT / 2);
-    putstr(CHAR_EMPTY);
+    for (value = 0; value < 7; value++)
+    {
+        arena_gotoxy(WIDTH / 2 - 8, HEIGHT / 2 - 3 + value);
+        printf("%-16s", "");
+    }
+
     fflush(stdout);
 }
 
