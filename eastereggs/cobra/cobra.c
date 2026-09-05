@@ -11,8 +11,17 @@
 // Tabuleiro
 int board[FIELD_SIZE];
 
-// Cobra
-int snake[FIELD_SIZE + 1];
+// Cobras
+#define MAX_SNAKES 8
+
+int snakes[MAX_SNAKES][FIELD_SIZE + 1];
+int snake_sizes[MAX_SNAKES];
+int snake_alive[MAX_SNAKES];
+int snake_count = 1;
+int active_snake_idx = 0;
+
+#define snake (snakes[active_snake_idx])
+#define snake_size (snake_sizes[active_snake_idx])
 
 // Tabuleiro temporário
 int tmpboard[FIELD_SIZE];
@@ -20,14 +29,15 @@ int tmpboard[FIELD_SIZE];
 // Cobra temporária
 int tmpsnake[FIELD_SIZE + 1];
 
-// Tamanho da cobra
-int snake_size = 1;
-
 // Tamanho temporário
 int tmpsnake_size = 1;
 
-// Posição do alimento
-int food = 3 * WIDTH + 3;
+// Posições dos alimentos
+int foods[MAX_SNAKES];
+int food_count = 1;
+int target_food = 3 * WIDTH + 3;
+
+#define food target_food
 
 // Melhor movimento
 int best_move = ERR;
@@ -50,12 +60,15 @@ int key_is_arrow = 0;
 int score = 0;
 
 // Direção do último movimento efetivo da cobra (usada para orientar o tiro)
-int last_move = ERR;
+int last_moves[MAX_SNAKES];
+
+#define last_move (last_moves[active_snake_idx])
 
 // Estado do tiro: ativo, posição atual e direção
 int bullet_active = 0;
 int bullet_pos = ERR;
 int bullet_dir = ERR;
+int bullet_owner = ERR;
 
 // Paleta estilo Mondrian aplicada ao corpo da cobra.
 // BLACK vira DARKGREY porque o fundo da arena já é preto.
@@ -79,6 +92,11 @@ static int paint_step = 0;
 
 // Cor com que cada célula do corpo foi pintada
 static int cell_color[FIELD_SIZE];
+
+void draw_head(void);
+void kill_active_snake(void);
+void draw_food(int food_idx);
+void new_food(int food_idx);
 
 // Cor da próxima célula do corpo, avançando a faixa
 static int next_body_color(void)
@@ -111,6 +129,133 @@ int is_cell_free(
     }
 
     return 1;
+}
+
+// Verifica se uma posição está livre em relação a todas as cobras vivas.
+int is_cell_free_all(int idx)
+{
+    int i;
+
+    for (i = 0; i < snake_count; i++)
+    {
+        if (
+            snake_alive[i] &&
+            !is_cell_free(idx, snake_sizes[i], snakes[i])
+        )
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int food_at(int idx)
+{
+    int i;
+
+    for (i = 0; i < food_count; i++)
+    {
+        if (foods[i] == idx)
+        {
+            return i;
+        }
+    }
+
+    return ERR;
+}
+
+int is_cell_free_food(int idx)
+{
+    return food_at(idx) == ERR;
+}
+
+int is_cell_free_food_except(int idx, int ignored_food_idx)
+{
+    int i;
+
+    for (i = 0; i < food_count; i++)
+    {
+        if (i != ignored_food_idx && foods[i] == idx)
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int choose_target_food(void)
+{
+    int i;
+    int best_food_idx = 0;
+    int best_distance = FIELD_SIZE;
+    int distance;
+    int head_x = snake[HEAD] % WIDTH;
+    int head_y = snake[HEAD] / WIDTH;
+
+    for (i = 0; i < food_count; i++)
+    {
+        distance =
+            abs(head_x - foods[i] % WIDTH) +
+            abs(head_y - foods[i] / WIDTH);
+
+        if (distance < best_distance)
+        {
+            best_distance = distance;
+            best_food_idx = i;
+        }
+    }
+
+    target_food = foods[best_food_idx];
+
+    return best_food_idx;
+}
+
+int active_snake_count(void)
+{
+    int i;
+    int count = 0;
+
+    for (i = 0; i < snake_count; i++)
+    {
+        if (snake_alive[i])
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int total_snake_size(void)
+{
+    int i;
+    int total = 0;
+
+    for (i = 0; i < snake_count; i++)
+    {
+        if (snake_alive[i])
+        {
+            total += snake_sizes[i];
+        }
+    }
+
+    return total;
+}
+
+void activate_first_alive_snake(void)
+{
+    int i;
+
+    for (i = 0; i < snake_count; i++)
+    {
+        if (snake_alive[i])
+        {
+            active_snake_idx = i;
+            return;
+        }
+    }
 }
 
 // Verifica se o movimento é possível (não sai da arena)
@@ -147,15 +292,11 @@ void board_reset(
 )
 {
     int i;
+    int j;
 
     for (i = 0; i < FIELD_SIZE; i++)
     {
-        if (i == food)
-        {
-            pboard[i] = FOOD;
-        }
-
-        else if (is_cell_free(i, psize, psnake))
+        if (is_cell_free(i, psize, psnake))
         {
             pboard[i] = UNDEFINED;
         }
@@ -163,6 +304,21 @@ void board_reset(
         else
         {
             pboard[i] = SNAKE;
+        }
+    }
+
+    pboard[food] = FOOD;
+
+    for (j = 0; j < snake_count; j++)
+    {
+        if (!snake_alive[j] || j == active_snake_idx)
+        {
+            continue;
+        }
+
+        for (i = 0; i < snake_sizes[j]; i++)
+        {
+            pboard[snakes[j][i]] = SNAKE;
         }
     }
 }
@@ -402,6 +558,8 @@ int any_possible_move(void)
     int i;
     int next_idx;
 
+    choose_target_food();
+
     board_reset(
         snake,
         snake_size,
@@ -459,13 +617,13 @@ void shift_array(
 }
 
 // Desenha o alimento no tabuleiro
-void draw_food(void)
+void draw_food(int food_idx)
 {
     textcolor(LIGHTRED);
 
     arena_gotoxy(
-        food % WIDTH,
-        food / WIDTH
+        foods[food_idx] % WIDTH,
+        foods[food_idx] / WIDTH
     );
 
     putstr(CHAR_FOOD);
@@ -475,7 +633,7 @@ void draw_food(void)
 
 // Cria um novo alimento em uma posição aleatória, 
 // garantindo que não esteja ocupada pela cobra
-void new_food(void)
+void new_food(int food_idx)
 {
     int cell_free = 0;
 
@@ -494,19 +652,75 @@ void new_food(void)
             rand() %
             (HEIGHT - 2);
 
-        food =
+        foods[food_idx] =
             h * WIDTH + w;
 
         cell_free =
-            is_cell_free(
-                food,
-                snake_size,
-                snake
-            );
+            is_cell_free_all(foods[food_idx]) &&
+            is_cell_free_food_except(foods[food_idx], food_idx) &&
+            (!bullet_active || foods[food_idx] != bullet_pos);
     }
 
     // Somente a nova posição é desenhada
-    draw_food();
+    draw_food(food_idx);
+}
+
+int create_random_snake(void)
+{
+    int i;
+    int w;
+    int h;
+    int pos;
+    int previous_active_snake_idx;
+    int new_snake_idx;
+
+    if (snake_count >= MAX_SNAKES)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < FIELD_SIZE; i++)
+    {
+        w =
+            1 +
+            rand() %
+            (WIDTH - 2);
+
+        h =
+            1 +
+            rand() %
+            (HEIGHT - 2);
+
+        pos =
+            h * WIDTH + w;
+
+        if (
+            is_cell_free_food(pos) &&
+            (!bullet_active || pos != bullet_pos) &&
+            is_cell_free_all(pos)
+        )
+        {
+            previous_active_snake_idx = active_snake_idx;
+            new_snake_idx = snake_count;
+
+            snakes[new_snake_idx][HEAD] = pos;
+            snake_sizes[new_snake_idx] = 1;
+            snake_alive[new_snake_idx] = 1;
+            last_moves[new_snake_idx] = ERR;
+            active_snake_idx = new_snake_idx;
+            snake_count++;
+            food_count++;
+
+            draw_head();
+            new_food(food_count - 1);
+
+            active_snake_idx = previous_active_snake_idx;
+
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 // Desenha a pontuação na parte inferior da arena
@@ -588,6 +802,7 @@ void fire_bullet(void)
     bullet_active = 1;
     bullet_dir = last_move;
     bullet_pos = snake[HEAD];
+    bullet_owner = active_snake_idx;
 
     audio_play(&audio_effectchannel, AUDIO_SHOOT, FALSE);
 
@@ -610,13 +825,31 @@ void fire_bullet(void)
 // @return: 1 se o tiro atingiu a própria cobra (fim de jogo), 0 caso contrário.
 int update_bullet(void)
 {
+    int i;
+    int food_idx;
     int next_pos;
+    int previous_active_snake_idx;
     int was_drawn;
 
     if (!bullet_active)
     {
         return 0;
     }
+
+    if (
+        bullet_owner == ERR ||
+        bullet_owner >= snake_count ||
+        !snake_alive[bullet_owner]
+    )
+    {
+        bullet_active = 0;
+        bullet_owner = ERR;
+
+        return 0;
+    }
+
+    previous_active_snake_idx = active_snake_idx;
+    active_snake_idx = bullet_owner;
 
     // Nada foi desenhado ainda na primeira célula (é a cabeça da cobra)
     was_drawn = bullet_pos != snake[HEAD];
@@ -629,6 +862,8 @@ int update_bullet(void)
         }
 
         bullet_active = 0;
+        bullet_owner = ERR;
+        active_snake_idx = previous_active_snake_idx;
 
         return 0;
     }
@@ -636,7 +871,9 @@ int update_bullet(void)
     next_pos = bullet_pos + bullet_dir;
 
     // Atinge a comida: mesmo efeito de capturá-la, mas com bônus de 3 pontos
-    if (next_pos == food)
+    food_idx = food_at(next_pos);
+
+    if (food_idx != ERR)
     {
         audio_play(&audio_effectchannel, AUDIO_SHOOT_FOOD, FALSE);
 
@@ -647,8 +884,8 @@ int update_bullet(void)
 
         // Apaga a comida atingida antes de sortear a próxima
         arena_gotoxy(
-            food % WIDTH,
-            food / WIDTH
+            foods[food_idx] % WIDTH,
+            foods[food_idx] / WIDTH
         );
 
         putstr(CHAR_EMPTY);
@@ -662,19 +899,39 @@ int update_bullet(void)
         draw_score();
 
         bullet_active = 0;
+        bullet_owner = ERR;
 
-        if (snake_size < FIELD_SIZE)
+        if (total_snake_size() < (WIDTH - 2) * (HEIGHT - 2))
         {
-            new_food();
+            new_food(food_idx);
         }
+
+        active_snake_idx = previous_active_snake_idx;
 
         return 0;
     }
 
-    // Atinge o próprio corpo da cobra: fim de jogo
-    if (!is_cell_free(next_pos, snake_size, snake))
+    // Atinge uma cobra: ela morre; só é fim de jogo se não restar nenhuma.
+    for (i = 0; i < snake_count; i++)
     {
-        return 1;
+        if (
+            snake_alive[i] &&
+            !is_cell_free(next_pos, snake_sizes[i], snakes[i])
+        )
+        {
+            if (was_drawn)
+            {
+                erase_bullet();
+            }
+
+            bullet_active = 0;
+            bullet_owner = ERR;
+            active_snake_idx = i;
+            kill_active_snake();
+            active_snake_idx = previous_active_snake_idx;
+
+            return active_snake_count() == 0;
+        }
     }
 
     if (was_drawn)
@@ -685,6 +942,8 @@ int update_bullet(void)
     bullet_pos = next_pos;
 
     draw_bullet();
+
+    active_snake_idx = previous_active_snake_idx;
 
     return 0;
 }
@@ -762,6 +1021,7 @@ void draw_head(void)
 // 1. nova cabeça  2. antiga cauda  3. alimento  4. pontuação
 void make_move(int pbest_move)
 {
+    int food_idx;
     int p;
     int old_head;
     int old_tail;
@@ -809,7 +1069,9 @@ void make_move(int pbest_move)
     textcolor(WHITE);
 
     // Verifica o alimento.
-    if (snake[HEAD] == food)
+    food_idx = food_at(snake[HEAD]);
+
+    if (food_idx != ERR)
     {
         audio_play(&audio_effectchannel, AUDIO_FOOD1, FALSE);
 
@@ -825,9 +1087,9 @@ void make_move(int pbest_move)
         draw_score();
 
         // Cria novo alimento.
-        if (snake_size < FIELD_SIZE)
+        if (total_snake_size() < (WIDTH - 2) * (HEIGHT - 2))
         {
-            new_food();
+            new_food(food_idx);
         }
     }
 
@@ -1022,6 +1284,7 @@ void read_keyboard(void)
 void initialize_game(void)
 {
     int i;
+    int j;
 
     // Tabuleiro
     for (i = 0; i < FIELD_SIZE; i++)
@@ -1030,18 +1293,33 @@ void initialize_game(void)
         tmpboard[i] = 0;
     }
 
-    // Cobra
+    // Cobras
+    for (j = 0; j < MAX_SNAKES; j++)
+    {
+        snake_sizes[j] = 0;
+        snake_alive[j] = 0;
+        last_moves[j] = ERR;
+
+        for (i = 0; i < FIELD_SIZE + 1; i++)
+        {
+            snakes[j][i] = 0;
+        }
+    }
+
     for (i = 0; i < FIELD_SIZE + 1; i++)
     {
-        snake[i] = 0;
         tmpsnake[i] = 0;
     }
+
+    snake_count = 1;
+    active_snake_idx = 0;
 
     // Cabeça inicial
     snake[HEAD] =
         1 * WIDTH + 1;
 
     snake_size = 1;
+    snake_alive[0] = 1;
 
     // Cobra temporária
     tmpsnake[HEAD] =
@@ -1050,8 +1328,10 @@ void initialize_game(void)
     tmpsnake_size = 1;
 
     // Alimento inicial
-    food =
+    food_count = 1;
+    foods[0] =
         3 * WIDTH + 3;
+    target_food = foods[0];
 
     // Direção inicial
     best_move = ERR;
@@ -1064,10 +1344,11 @@ void initialize_game(void)
     score = 0;
 
     // Tiro
-    last_move = ERR;
+    last_moves[0] = ERR;
     bullet_active = 0;
     bullet_pos = ERR;
     bullet_dir = ERR;
+    bullet_owner = ERR;
 
     // Faixa de cor inicial
     paint_step = 0;
@@ -1082,7 +1363,11 @@ void initialize_game(void)
 // A última célula é ignorada porque a cauda se desloca no mesmo instante.
 static int is_move_fatal(int move)
 {
+    int i;
+    int j;
     int next_idx;
+    int limit;
+    int eating;
 
     if (
         move == ERR ||
@@ -1093,13 +1378,79 @@ static int is_move_fatal(int move)
     }
 
     next_idx = snake[HEAD] + move;
+    eating = food_at(next_idx) != ERR;
 
-    if (next_idx == food)
+    for (i = 0; i < snake_count; i++)
     {
-        return !is_cell_free(next_idx, snake_size, snake);
+        if (!snake_alive[i])
+        {
+            continue;
+        }
+
+        limit = snake_sizes[i];
+
+        if (i == active_snake_idx && !eating)
+        {
+            limit--;
+        }
+
+        for (j = 0; j < limit; j++)
+        {
+            if (next_idx == snakes[i][j])
+            {
+                return 1;
+            }
+        }
     }
 
-    return !is_cell_free(next_idx, snake_size - 1, snake);
+    return 0;
+}
+
+void kill_active_snake(void)
+{
+    int i;
+    int remaining_snakes;
+
+    for (i = 0; i < snake_size; i++)
+    {
+        arena_gotoxy(
+            snake[i] % WIDTH,
+            snake[i] / WIDTH
+        );
+
+        putstr(CHAR_EMPTY);
+    }
+
+    snake_alive[active_snake_idx] = 0;
+    remaining_snakes = active_snake_count();
+
+    if (remaining_snakes > 0)
+    {
+        audio_play(&audio_effectchannel, AUDIO_EVILLAUGH, FALSE);
+    }
+
+    if (food_count > remaining_snakes)
+    {
+        food_count--;
+
+        arena_gotoxy(
+            foods[food_count] % WIDTH,
+            foods[food_count] / WIDTH
+        );
+
+        putstr(CHAR_EMPTY);
+
+        if (food_count > 0)
+        {
+            target_food = foods[0];
+        }
+    }
+
+    if (bullet_owner == active_snake_idx)
+    {
+        bullet_active = 0;
+        bullet_owner = ERR;
+    }
 }
 
 // Converte uma seta pressionada no deslocamento correspondente.
@@ -1253,6 +1604,7 @@ int cobraRun(void)
     int manual_move = ERR;
     int requested_move;
     int snake_died = 1;
+    int i;
 
     // A arena é desenhada na área reservada ao problema
     draw_problem_screen(COBRA_PROBLEM, "");
@@ -1280,7 +1632,7 @@ int cobraRun(void)
     draw_head();
 
     // Comida
-    draw_food();
+    draw_food(0);
 
     // Pontuação
     draw_score();
@@ -1319,8 +1671,13 @@ int cobraRun(void)
             manual_move = ERR;
             draw_control_mode(manual_mode, paused);
         }
+        else if (!key_is_arrow && (key == 'c' || key == 'C'))
+        {
+            create_random_snake();
+        }
         else if (key == KEY_SPACE_CODE)
         {
+            activate_first_alive_snake();
             fire_bullet();
         }
         else
@@ -1329,6 +1686,8 @@ int cobraRun(void)
 
             if (requested_move != ERR)
             {
+                activate_first_alive_snake();
+
                 if (is_reverse_move(last_move, requested_move))
                 {
                     continue;
@@ -1346,64 +1705,88 @@ int cobraRun(void)
             continue;
         }
 
-        // Atualiza o tabuleiro lógico
-        board_reset(
-            snake,
-            snake_size,
-            board
-        );
-
-        // Atualiza o tabuleiro lógico com distâncias
-        best_move = manual_mode ? manual_move : ERR;
-
-        if (best_move == ERR &&
-            board_refresh(
-                food,
-                snake,
-                board
-            ))
-        {
-            // Há caminho até o alimento: escolhe o melhor movimento
-            best_move =
-                find_safe_way();
-        }
-
-        else if (best_move == ERR)
-        {
-            // Não há caminho direto: segue a cauda.
-            best_move =
-                follow_tail();
-        }
-
-        // Sem movimento seguro: tenta qualquer movimento possível
-        if (best_move == ERR)
-        {
-            best_move =
-                any_possible_move();
-        }
-
-        // Sem saída ou colisão: fim de jogo
-        if (is_move_fatal(best_move))
-        {
-            break;
-        }
-
-        // Avança o tiro em curso (usa a cobra ainda não movida neste tick),
-        // encerra o jogo se ele atingir a própria cobra
+        // Avança o tiro em curso (usa as cobras ainda não movidas neste tick),
+        // encerra o jogo se ele eliminar a última cobra.
         if (update_bullet())
         {
             message = " Eita, levou chumbo!";
             break;
         }
 
-        // Executa movimento
-        make_move(best_move);
+        for (i = 0; i < snake_count; i++)
+        {
+            if (!snake_alive[i])
+            {
+                continue;
+            }
 
-        // Guarda a direção para orientar o próximo tiro
-        last_move = best_move;
+            active_snake_idx = i;
+            choose_target_food();
+
+            // Atualiza o tabuleiro lógico
+            board_reset(
+                snake,
+                snake_size,
+                board
+            );
+
+            // Atualiza o tabuleiro lógico com distâncias
+            best_move =
+                manual_mode && i == 0 ? manual_move : ERR;
+
+            if (best_move == ERR &&
+                board_refresh(
+                    food,
+                    snake,
+                    board
+                ))
+            {
+                // Há caminho até o alimento: escolhe o melhor movimento
+                best_move =
+                    find_safe_way();
+            }
+
+            else if (best_move == ERR)
+            {
+                // Não há caminho direto: segue a cauda.
+                best_move =
+                    follow_tail();
+            }
+
+            // Sem movimento seguro: tenta qualquer movimento possível
+            if (best_move == ERR)
+            {
+                best_move =
+                    any_possible_move();
+            }
+
+            // Sem saída ou colisão: remove esta cobra.
+            if (is_move_fatal(best_move))
+            {
+                kill_active_snake();
+
+                if (active_snake_count() == 0)
+                {
+                    break;
+                }
+
+                continue;
+            }
+
+            // Executa movimento
+            make_move(best_move);
+
+            // Guarda a direção para orientar o próximo tiro
+            last_move = best_move;
+        }
+
+        if (active_snake_count() == 0)
+        {
+            break;
+        }
 
         // Arena completamente preenchida
-        if (snake_size >= playable_cells)
+        if (total_snake_size() >= playable_cells)
         {
             message = "Voce venceu!";
             snake_died = 0;
