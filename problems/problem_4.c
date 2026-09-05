@@ -69,6 +69,7 @@ bool popPilhaChar(PilhaChar *p, char *valor) {
     return true;
 }
 
+/* Compara duas strings ignorando diferenças entre maiúsculas e minúsculas */
 static bool igualSemCaso(const char *a, const char *b)
 {
     while (*a != '\0' && *b != '\0') {
@@ -86,34 +87,46 @@ static bool igualSemCaso(const char *a, const char *b)
     return *a == '\0' && *b == '\0';
 }
 
+/* Verifica se uma palavra é um palíndromo */
 bool isPalindrome(char word[])
 {
     int len = (int)strlen(word);
-    
+
     if (len <= 1) {
         return true;
     }
 
     PilhaChar p;
+    
     inicializarPilhaChar(&p);
 
-    int metade = len / 2;
-    for (int i = 0; i < metade; i++) {
+    int halfWord = len / 2;
+
+    for (int i = 0; i < halfWord; i++) {
+    
         if (!pushPilhaChar(&p, word[i])) {
+    
             return false;
+    
         }
     }
 
-    int inicioComparacao = (len % 2 == 0) ? metade : metade + 1;
+    int initCompare = (len % 2 == 0) ? halfWord : halfWord + 1;
 
-    for (int i = inicioComparacao; i < len; i++) {
+    for (int i = initCompare; i < len; i++) {
+    
         char valor;
+    
         if (!popPilhaChar(&p, &valor)) {
+    
             return false;
+    
         }
 
         if (word[i] != valor) {
+    
             return false;
+
         }
     }
 
@@ -131,29 +144,33 @@ void problem_4(void)
 
     gotoxy(9, 12);
     printf("É ou não é um Palíndromo, meu bom?\n");
+    gotoxy(9, 13);
     printf("Digite 'sair' para encerrar.\n\n");
 
     while (1) {
-        gotoxy(9, 14);
+        gotoxy(9, 14);textcolor(YELLOW);
         printf("Mande bala, qual a palavra?: ");
         if (fgets(textInput, sizeof(textInput), stdin) == NULL) break;
 
         textInput[strcspn(textInput, "\r\n")] = '\0';
 
         if (igualSemCaso(textInput, "sair")) {
-            gotoxy(9, 15);
-            printf("Encerrando o programa...\n");
+            gotoxy(9, 18);textcolor(RED);
+            printf("Saindo...\n");
             break;
         }
 
         if (strlen(textInput) == 0) continue;
 
         gotoxy(9, 16);
-        if (isPalindrome(textInput)) {            
-            printf("-> \"%s\" eh um PALINDROMO!\n\n", textInput);
+        if (isPalindrome(textInput)) {
+            textcolor(GREEN);            
+            printf("Resposta: \"%s\" é um palíndromo, meu bom.\n\n", textInput);
         } else {
-            printf("-> \"%s\" NAO eh um palindromo.\n\n", textInput);
+            textcolor(RED);
+            printf("Resposta: \"%s\" não é um palíndromo, meu bom.\n\n", textInput);
         }
+        gotoxy(9, 14);printf("                                                   ");
     }
 
     //---------------------------------------------------

@@ -7,6 +7,8 @@
 #include "problems/problem_2.h"
 //#include "problems/problem_3.h"
 #include "problems/problem_4.h"
+#include "problems/problem_5.h"
+#include "problems/problem_6.h"
 #include "eastereggs/cobra/cobra.h"
 
 void run_selected_problem(int selected)
@@ -27,6 +29,12 @@ void run_selected_problem(int selected)
         //    break;
         case 4:
             problem_4();
+            break;
+        case 5:
+            problem_5();
+            break;
+        case 6:
+            problem_6();
             break;
         case 14:
             cobraRun();
