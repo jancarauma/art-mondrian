@@ -1,8 +1,11 @@
 #ifndef PROBLEM_2_H
 #define PROBLEM_2_H
 
+#include <stdlib.h>
+#include <stdbool.h>
+
 // Tamanho máximo da pilha (capacidade do vetor)
-#define CAPACIDADE 5
+#define CAPACIDADE 100
 
 typedef struct {
         int topo;               // índice do elemento no topo da pilha
@@ -10,5 +13,10 @@ typedef struct {
     } Pilha;
 
 void problem_2(void);
+void inicializar(Pilha *p);
+bool estaCheia(Pilha *p);
+bool estaVazia(Pilha *p);
+bool push(Pilha *p, int valor);
+bool pop(Pilha *p, int *valor);
 
 #endif /* PROBLEM_2_H */

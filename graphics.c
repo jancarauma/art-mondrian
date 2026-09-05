@@ -77,10 +77,10 @@ static void fb_flush(FrameBuf *fb)
 static void cloudy_sky_restore_cell(FrameBuf *fb, int x, int y);
 
 char *mainmenu[MENU_MAIN_ITEMS] = {
-	" Aula 01 | Núm. Total de Colisões ······· 21/08/2026 ",  
-	" Aula 02 | Pilha ························ 29/08/2026 ",  
+	" Aula 01 | Núm. Total de Colisões ········· 21/08/26 ",  
+	" Aula 02 | Pilha ·························· 29/08/26 ",  
     " └·······| Fila ···································┘ ",  
-    " Problema 04 - ····································· ",  
+    " Aula 04 | Palíndromo ····················· 05/09/26 ",  
     " Problema 05 - ····································· ",  
     " Problema 06 - ····································· ",  
     " Problema 07 - ····································· ",  
