@@ -1006,7 +1006,7 @@ void draw_problem_screen(
     }
     else
     {
-        snprintf(problem_title, sizeof(problem_title), "\e[37;40mPROBLEMA\e[33;40m %02d", selected);
+        snprintf(problem_title, sizeof(problem_title), "\e[37;40m    AULA\e[33;40m %02d", selected);
     }
 
     draw_mondrian();
@@ -1025,7 +1025,7 @@ void draw_problem_screen(
     // Título do problema
     gotoxy(35,4);
     textbackground(BLACK);
-    printf("\e[37;40mPROBLEMA\e[33;40m %02d", selected);
+    printf("\e[37;40m    AULA\e[33;40m %02d", selected);
     while (*character  != '\0')
     {
         gotoxy(9, row);
@@ -1056,7 +1056,7 @@ void draw_problem_screen(
 void draw_content_placeholder(int selected)
 {
     char title[64];
-    snprintf(title, sizeof(title), "PROBLEMA %02d", selected);
+    snprintf(title, sizeof(title), "    AULA %02d", selected);
 
     draw_problem_screen(
         selected,

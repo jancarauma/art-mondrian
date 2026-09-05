@@ -5,7 +5,7 @@
 #include "problems/problem_0.h"
 #include "problems/problem_1.h"
 #include "problems/problem_2.h"
-//#include "problems/problem_3.h"
+#include "problems/problem_3.h"
 #include "problems/problem_4.h"
 #include "problems/problem_5.h"
 #include "problems/problem_6.h"
@@ -24,9 +24,9 @@ void run_selected_problem(int selected)
         case 2:
             problem_2();
             break;
-        //case 3:
-        //    problem_3();
-        //    break;
+        case 3:
+            problem_3();
+            break;
         case 4:
             problem_4();
             break;

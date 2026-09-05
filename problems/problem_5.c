@@ -136,7 +136,7 @@ bool balancedText(const char *text)
 
 void problem_5(void)
 {
-    draw_problem_screen(2,(const char *) ascii_problema_5);
+    draw_problem_screen(4,(const char *) ascii_problema_5);
     //----------------------------------------------------
 
     textcolor(WHITE); textbackground(BLACK);
@@ -150,14 +150,14 @@ void problem_5(void)
 
     while (1) {
         gotoxy(9, 14);textcolor(YELLOW);
-        printf("Mande bala, qual a expressão, meu nobre?: ");
+        printf("Mande bala, qual a expressão, meu nobre?: ");textcolor(CYAN);
         if (fgets(textInput, sizeof(textInput), stdin) == NULL) break;
 
         textcolor(CYAN);
         textInput[strcspn(textInput, "\r\n")] = '\0';
 
         if (strcmp(textInput, "sair") == 0) {
-            gotoxy(9, 18);textcolor(RED);
+            gotoxy(9, 18);textcolor(LIGHTMAGENTA);
             printf("Saindo...\n");
             break;
         }

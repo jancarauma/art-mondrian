@@ -139,7 +139,7 @@ int hotPotato(int n, int k) {
 
 void problem_6(void)
 {
-    draw_problem_screen(2,(const char *) ascii_problema_6);
+    draw_problem_screen(4,(const char *) ascii_problema_6);
     //----------------------------------------------------
 
     textcolor(WHITE); textbackground(BLACK);
@@ -148,7 +148,7 @@ void problem_6(void)
     int n, k;
 
     gotoxy(9, 12);
-    printf("A batata está quente, meu nobre");
+    printf("A batata está quente, rapaz");
     gotoxy(9, 13);
     printf("Digite 'sair' para encerrar.");
 
@@ -156,7 +156,7 @@ void problem_6(void)
         gotoxy(9, 14); textcolor(YELLOW);
         printf("                                                                 ");
         gotoxy(9, 14);
-        printf("Número de crianças (n): ");
+        printf("Número de crianças (n): ");textcolor(CYAN);
         if (fgets(buffer, sizeof(buffer), stdin) == NULL) break;
 
         buffer[strcspn(buffer, "\r\n")] = '\0';
@@ -186,7 +186,7 @@ void problem_6(void)
         buffer[strcspn(buffer, "\r\n")] = '\0';
 
         if (strcmp(buffer, "sair") == 0 || strcmp(buffer, "0") == 0) {
-            gotoxy(9, 18); textcolor(RED);
+            gotoxy(9, 18); textcolor(LIGHTMAGENTA);
             printf("Saindo...\n");
             break;
         }
@@ -202,7 +202,7 @@ void problem_6(void)
         int vencedor = hotPotato(n, k);
 
         gotoxy(9, 16); textcolor(GREEN);
-        printf("Resposta: A criança vencedora é a %d.", vencedor);
+        printf("Resposta: Para n = %d e k = %d, a criança que sobra é a %d.", n, k, vencedor);
 
         gotoxy(9, 14); printf("                                                                 ");
         gotoxy(9, 15); printf("                                                                 ");

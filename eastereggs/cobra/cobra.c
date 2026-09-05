@@ -1061,7 +1061,7 @@ void initialize_game(void)
     key_is_arrow = 0;
 
     // Pontuação
-    score = 1;
+    score = 0;
 
     // Tiro
     last_move = ERR;

@@ -135,7 +135,7 @@ bool isPalindrome(char word[])
 
 void problem_4(void)
 {
-    draw_problem_screen(2,(const char *) ascii_problem_4);
+    draw_problem_screen(4,(const char *) ascii_problem_4);
     //----------------------------------------------------
 
     textcolor(WHITE); textbackground(BLACK);
@@ -149,13 +149,13 @@ void problem_4(void)
 
     while (1) {
         gotoxy(9, 14);textcolor(YELLOW);
-        printf("Mande bala, qual a palavra?: ");
+        printf("Mande bala, qual a palavra?: ");textcolor(CYAN);
         if (fgets(textInput, sizeof(textInput), stdin) == NULL) break;
 
         textInput[strcspn(textInput, "\r\n")] = '\0';
 
         if (igualSemCaso(textInput, "sair")) {
-            gotoxy(9, 18);textcolor(RED);
+            gotoxy(9, 18);textcolor(LIGHTMAGENTA);
             printf("Saindo...\n");
             break;
         }
