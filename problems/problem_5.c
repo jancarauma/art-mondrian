@@ -153,6 +153,7 @@ void problem_5(void)
         printf("Mande bala, qual a expressão, meu nobre?: ");
         if (fgets(textInput, sizeof(textInput), stdin) == NULL) break;
 
+        textcolor(CYAN);
         textInput[strcspn(textInput, "\r\n")] = '\0';
 
         if (strcmp(textInput, "sair") == 0) {
